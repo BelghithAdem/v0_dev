@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge"
 import { AlertCircle, Package, ExternalLink, AlertTriangle } from 'lucide-react'
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ProductDetailsDialog } from "./product-details-dialog"
+import { addProduct } from "@/lib/api"
 
 interface OrderLineDialogProps {
   orderLine?: OrderLine
@@ -94,11 +95,24 @@ export function OrderLineDialog({
     }
   }, [formData, selectedProductId, products])
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    onSave(formData)
-    onOpenChange(false)
-  }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+  
+    try {
+      // Call addProduct API
+      const newProduct = await addProduct(formData.id,{
+        product_id: formData.id,
+        qty: formData.qty,
+      });
+  
+      // Handle successful response
+      onSave(newProduct);
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Failed to add product:", error);
+      // Optionally show an error notification
+    }
+  };
 
   const handleProductSelect = (productId: string) => {
     const selectedProduct = products.find(p => p.id === productId)
@@ -208,96 +222,29 @@ export function OrderLineDialog({
                       id="quantity"
                       type="number"
                       min="1"
-                      value={formData.quantity || ''}
-                      onChange={(e) => setFormData({ ...formData, quantity: Number(e.target.value) })}
+                      value={formData.qty || ''}
+                      onChange={(e) => setFormData({ ...formData, qty: Number(e.target.value) })}
                     />
                   </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="unitPrice">Unit Price</Label>
-                    <div className="flex items-center gap-2">
-                      <Input
-                        id="unitPrice"
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={formData.unitPrice || ''}
-                        onChange={(e) => setFormData({ ...formData, unitPrice: Number(e.target.value) })}
-                      />
-                      <Select value={selectedCurrency} onValueChange={setSelectedCurrency}>
-                        <SelectTrigger className="w-[100px]">
-                          <SelectValue placeholder="Currency" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {currencies.map(currency => (
-                            <SelectItem key={currency.code} value={currency.code}>
-                              {currency.code}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
+
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="taxRate">Tax Rate (%)</Label>
-                    <Input
-                      id="taxRate"
-                      type="number"
-                      step="0.1"
-                      min="0"
-                      value={formData.taxRate || ''}
-                      onChange={(e) => setFormData({ ...formData, taxRate: Number(e.target.value) })}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="discount">Discount (%)</Label>
-                    <Input
-                      id="discount"
-                      type="number"
-                      step="0.1"
-                      min="0"
-                      max="100"
-                      value={formData.discount || ''}
-                      onChange={(e) => setFormData({ ...formData, discount: Number(e.target.value) })}
-                    />
-                  </div>
-                </div>
               </div>
 
-              {stockWarning && (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>
-                    Warning: Quantity exceeds available stock ({selectedProduct?.inStock} available)
-                  </AlertDescription>
-                </Alert>
-              )}
-
-              <div className="grid gap-2">
-                <Label htmlFor="notes">Notes</Label>
-                <Textarea
-                  id="notes"
-                  placeholder="Add any special instructions or notes about this item"
-                  value={formData.notes || ''}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                />
-              </div>
 
               <Card className="p-4">
                 <div className="grid gap-2">
                   <div className="flex justify-between text-sm">
                     <span>Subtotal:</span>
-                    <span>{currencies.find(c => c.code === selectedCurrency)?.symbol}{convertPrice(((formData.quantity || 0) * (formData.unitPrice || 0)), 'USD', selectedCurrency).toFixed(2)}</span>
+                    <span>{currencies.find(c => c.code === selectedCurrency)?.symbol}{convertPrice(((formData.qty || 0) * (formData.product_price || 0)), 'USD', selectedCurrency).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span>Tax ({formData.taxRate}%):</span>
-                    <span>{currencies.find(c => c.code === selectedCurrency)?.symbol}{convertPrice(((formData.quantity || 0) * (formData.unitPrice || 0)) * ((formData.taxRate || 0) / 100), 'USD', selectedCurrency).toFixed(2)}</span>
+                    <span>Tax ({formData.tax_rate}%):</span>
+                    <span>{currencies.find(c => c.code === selectedCurrency)?.symbol}{convertPrice(((formData.qty || 0) * (formData.product_price || 0)) * ((formData.tax_rate || 0) / 100), 'USD', selectedCurrency).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span>Discount ({formData.discount}%):</span>
-                    <span>-{currencies.find(c => c.code === selectedCurrency)?.symbol}{convertPrice(((formData.quantity || 0) * (formData.unitPrice || 0)) * ((formData.discount || 0) / 100), 'USD', selectedCurrency).toFixed(2)}</span>
+                    <span>-{currencies.find(c => c.code === selectedCurrency)?.symbol}{convertPrice(((formData.qty || 0) * (formData.product_price || 0)) * ((formData.discount || 0) / 100), 'USD', selectedCurrency).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between font-semibold pt-2 border-t">
                     <span>Total:</span>
