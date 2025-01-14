@@ -1,29 +1,58 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from "react"
-import { format } from 'date-fns'
-import { CalendarIcon, Plus, FileText, Truck, Receipt, Paperclip, AlertCircle, Trash2, HelpCircle, Eye } from 'lucide-react'
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
-import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable'
+import { useState, useEffect } from "react";
+import { format } from "date-fns";
+import {
+  CalendarIcon,
+  Plus,
+  FileText,
+  Truck,
+  Receipt,
+  Paperclip,
+  AlertCircle,
+  Trash2,
+  HelpCircle,
+  Eye,
+} from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Input } from "@/components/ui/input"
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover"
-import { Calendar } from "@/components/ui/calendar"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -31,44 +60,67 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import { Textarea } from "@/components/ui/textarea"
-import { CustomerManagement } from "@/components/customer-management"
-import { OrderLineDialog } from "@/components/order-line-dialog"
-import { QuickAddFavorites } from "@/components/quick-add-favorites"
-import { ProductRecommendations } from "@/components/product-recommendations"
-import { DraggableOrderLineItem } from "@/components/draggable-order-line-item"
-import { BatchActions } from "@/components/batch-actions"
-import { Customer, OrderLine, SalesOrder, Product, ShippingMethod, PaymentMethod } from "@/types/sales-order"
-import { customers, products, warehouses, shippingMethods, paymentMethods, initialOrderLines, sampleSalesOrders } from "@/data/dummy-data"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Label } from "@/components/ui/label"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { CopyFromDialog } from "@/components/copy-from-dialog"
-import { CopyToDialog } from "@/components/copy-to-dialog"
-import { OrderTemplates } from "@/components/order-templates"
-import { OrderPreview } from "@/components/order-preview"
-import { EnhancedAttachments } from "@/components/enhanced-attachments"
-import { InvoiceGenerator } from "@/components/invoice-generator"
-import { KeyboardShortcutsInfo } from "@/components/keyboard-shortcuts-info"
-import { customers as customerData } from "@/data/dummy-data"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { TooltipProvider, TooltipRoot, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
-import { CompactOrderPreview } from "@/components/compact-order-preview"
-
-
+} from "@/components/ui/table";
+import { Textarea } from "@/components/ui/textarea";
+import { CustomerManagement } from "@/components/customer-management";
+import { OrderLineDialog } from "@/components/order-line-dialog";
+import { QuickAddFavorites } from "@/components/quick-add-favorites";
+import { ProductRecommendations } from "@/components/product-recommendations";
+import { DraggableOrderLineItem } from "@/components/draggable-order-line-item";
+import { BatchActions } from "@/components/batch-actions";
+import {
+  Customer,
+  OrderLine,
+  SalesOrder,
+  Product,
+  ShippingMethod,
+  PaymentMethod,
+} from "@/types/sales-order";
+import {
+  customers,
+  warehouses,
+  shippingMethods,
+  paymentMethods,
+  sampleSalesOrders,
+} from "@/data/dummy-data";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { CopyFromDialog } from "@/components/copy-from-dialog";
+import { CopyToDialog } from "@/components/copy-to-dialog";
+import { OrderTemplates } from "@/components/order-templates";
+import { OrderPreview } from "@/components/order-preview";
+import { EnhancedAttachments } from "@/components/enhanced-attachments";
+import { InvoiceGenerator } from "@/components/invoice-generator";
+import { KeyboardShortcutsInfo } from "@/components/keyboard-shortcuts-info";
+import { customers as customerData } from "@/data/dummy-data";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  TooltipProvider,
+  TooltipRoot,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
+import { CompactOrderPreview } from "@/components/compact-order-preview";
+import { fetchOrderLines, getProduct, deleteOrderLine } from "./lib/api";
 const currencies = [
-  { code: 'USD', symbol: '$' },
-  { code: 'EUR', symbol: '€' },
-  { code: 'GBP', symbol: '£' },
-]
+  { code: "USD", symbol: "$" },
+  { code: "EUR", symbol: "€" },
+  { code: "GBP", symbol: "£" },
+];
 
 const exchangeRates = {
   USD: 1,
   EUR: 0.85,
   GBP: 0.73,
-}
+};
 
 interface Template {
   id: string;
@@ -80,49 +132,85 @@ interface Template {
 }
 
 export default function CreateSalesOrder() {
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer>()
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer>();
   const [selectedDates, setSelectedDates] = useState({
     orderDate: new Date(),
     deliveryDate: undefined,
     dueDate: undefined,
-  })
-  const [orderLines, setOrderLines] = useState<OrderLine[]>(initialOrderLines)
-  const [orderLineDialogOpen, setOrderLineDialogOpen] = useState(false)
-  const [editingOrderLine, setEditingOrderLine] = useState<OrderLine>()
-  const [status, setStatus] = useState<SalesOrder['status']>('draft')
-  const [shippingMethod, setShippingMethod] = useState('')
-  const [trackingNumber, setTrackingNumber] = useState('')
-  const [paymentTerms, setPaymentTerms] = useState('')
-  const [currency, setCurrency] = useState('USD')
-  const [notes, setNotes] = useState('')
-  const [customerNotes, setCustomerNotes] = useState('')
-  const [internalNotes, setInternalNotes] = useState('')
-  const [attachments, setAttachments] = useState<File[]>([])
-  const [creditLimitWarning, setCreditLimitWarning] = useState(false)
-  const [paymentMethod, setPaymentMethod] = useState('')
-  const [isPaid, setIsPaid] = useState(false)
-  const [bulkUploadOpen, setBulkUploadOpen] = useState(false)
-  const [copyFromDialogOpen, setCopyFromDialogOpen] = useState(false)
-  const [copyToDialogOpen, setCopyToDialogOpen] = useState(false)
-  const [salesOrders, setSalesOrders] = useState<SalesOrder[]>(sampleSalesOrders)
-  const [selectedOrderLines, setSelectedOrderLines] = useState<string[]>([])
-  const [shortcutsOpen, setShortcutsOpen] = useState(false)
-  const [previewOpen, setPreviewOpen] = useState(false)
+  });
+  let initialOrderLines: OrderLine[] = []; // Explicitly typed as OrderLine array
+  const fetchAndDisplayOrderLines = async () => {
+    const orderId = 71126;
+    const orqValue = 12;
+
+    try {
+      // Fetch the order lines
+      const initialOrderLines = await fetchOrderLines(orderId, orqValue);
+
+      // Log the fetched order lines inside the function
+      if (initialOrderLines.length > 0) {
+        console.log("Order lines fetched successfully:");
+        console.table(initialOrderLines); // Display in table format
+      } else {
+        console.log("No order lines found.");
+      }
+
+      // Return the fetched data
+      return initialOrderLines;
+    } catch (error) {
+      console.error("Error fetching order lines:", error);
+      return [];
+    }
+  };
+  useEffect(() => {
+    const fetchOrderLines = async () => {
+      const initialOrderLines = await fetchAndDisplayOrderLines();
+      console.log("Fetched Order Lines:", initialOrderLines);
+      setOrderLines(initialOrderLines);
+    };
+
+    fetchOrderLines();
+  }, []);
+
+  const [orderLines, setOrderLines] = useState<OrderLine[]>(initialOrderLines);
+  const [orderLineDialogOpen, setOrderLineDialogOpen] = useState(false);
+  const [editingOrderLine, setEditingOrderLine] = useState<OrderLine>();
+  const [status, setStatus] = useState<SalesOrder["status"]>("draft");
+  const [shippingMethod, setShippingMethod] = useState("");
+  const [trackingNumber, setTrackingNumber] = useState("");
+  const [paymentTerms, setPaymentTerms] = useState("");
+  const [currency, setCurrency] = useState("USD");
+  const [notes, setNotes] = useState("");
+  const [customerNotes, setCustomerNotes] = useState("");
+  const [internalNotes, setInternalNotes] = useState("");
+  const [attachments, setAttachments] = useState<File[]>([]);
+  const [creditLimitWarning, setCreditLimitWarning] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState("");
+  const [isPaid, setIsPaid] = useState(false);
+  const [bulkUploadOpen, setBulkUploadOpen] = useState(false);
+  const [copyFromDialogOpen, setCopyFromDialogOpen] = useState(false);
+  const [copyToDialogOpen, setCopyToDialogOpen] = useState(false);
+  const [salesOrders, setSalesOrders] =
+    useState<SalesOrder[]>(sampleSalesOrders);
+  const [selectedOrderLines, setSelectedOrderLines] = useState<string[]>([]);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
   const [templates, setTemplates] = useState<Template[]>([
     {
-      id: '1',
-      name: 'Standard Office Setup',
-      description: 'Basic office equipment package including laptop, monitor, and accessories',
+      id: "1",
+      name: "Standard Office Setup",
+      description:
+        "Basic office equipment package including laptop, monitor, and accessories",
       createdAt: new Date(),
-      tags: ['Office', 'Hardware', 'Standard'],
+      tags: ["Office", "Hardware", "Standard"],
       order: {
-        id: '1',
-        orderNumber: 'TEMPLATE-001',
-        customerId: '',
-        status: 'draft',
+        id: "1",
+        orderNumber: "TEMPLATE-001",
+        customerId: "",
+        status: "draft",
         orderDate: new Date(),
-        paymentTerms: 'net30',
-        currency: 'USD',
+        paymentTerms: "net30",
+        currency: "USD",
         subtotal: 1729.97,
         taxTotal: 147.05,
         discountTotal: 0,
@@ -130,154 +218,196 @@ export default function CreateSalesOrder() {
         total: 1877.02,
         orderLines: [
           {
-            id: '1',
-            productId: '1',
-            productName: 'Premium Laptop',
-            productCode: 'TECH-001',
+            id: "1",
+            productId: "1",
+            productName: "Premium Laptop",
+            productCode: "TECH-001",
             quantity: 1,
             unitPrice: 1299.99,
             taxRate: 8.5,
             discount: 0,
             subTotal: 1299.99,
             total: 1410.49,
-            unit: 'piece',
-            isCustom: false
+            unit: "piece",
+            isCustom: false,
           },
           {
-            id: '2',
-            productId: '2',
-            productName: 'Wireless Mouse',
-            productCode: 'ACC-001',
+            id: "2",
+            productId: "2",
+            productName: "Wireless Mouse",
+            productCode: "ACC-001",
             quantity: 1,
             unitPrice: 29.99,
             taxRate: 8.5,
             discount: 0,
             subTotal: 29.99,
             total: 32.54,
-            unit: 'piece',
-            isCustom: false
+            unit: "piece",
+            isCustom: false,
           },
           {
-            id: '3',
-            productId: '3',
-            productName: '4K Monitor',
-            productCode: 'DISP-001',
+            id: "3",
+            productId: "3",
+            productName: "4K Monitor",
+            productCode: "DISP-001",
             quantity: 1,
             unitPrice: 399.99,
             taxRate: 8.5,
             discount: 0,
             subTotal: 399.99,
             total: 433.99,
-            unit: 'piece',
-            isCustom: false
-          }
+            unit: "piece",
+            isCustom: false,
+          },
         ],
-        paymentMethod: '1',
-        isPaid: false
-      }
+        paymentMethod: "1",
+        isPaid: false,
+      },
     },
     // ... other template objects remain the same
-  ])
+  ]);
+  const [products, setProducts] = useState<Product[]>([]);
 
-  const favoriteProducts = products.slice(0, 3)
-  const productBundles = [
-    { 
-      id: 'bundle1', 
-      name: 'Office Starter Kit', 
-      products: [products[0], products[1]] 
-    },
-    { 
-      id: 'bundle2', 
-      name: 'Premium Workstation', 
-      products: [products[0], products[1], products[2]] 
+  const fetchAndDisplayProduct = async () => {
+    try {
+      // Fetch the order lines
+      const product = await getProduct();
+
+      // Log the fetched order lines inside the function
+      if (product.length > 0) {
+        console.log(" product fetched successfully:");
+        console.table(product); // Display in table format
+      } else {
+        console.log("No order lines found.");
+      }
+
+      // Return the fetched data
+      return product;
+    } catch (error) {
+      console.error("Error fetching order lines:", error);
+      return [];
     }
-  ]
+  };
 
-  const recommendedProducts = products.slice(0, 3) 
+  useEffect(() => {
+    const fetchproduct = async () => {
+      const Products = await fetchAndDisplayProduct();
+      console.log("Fetched Order Lines:", Products);
+      setProducts(Products);
+    };
+
+    fetchproduct();
+  }, []);
+  const favoriteProducts = products.slice(0, 3);
+  const productBundles = [
+    {
+      id: "bundle1",
+      name: "Office Starter Kit",
+      products: [products[0], products[1]],
+    },
+    {
+      id: "bundle2",
+      name: "Premium Workstation",
+      products: [products[0], products[1], products[2]],
+    },
+  ];
+
+  const recommendedProducts = products.slice(0, 3);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
-  )
+  );
 
   const handleCopyFrom = (sourceOrder: SalesOrder) => {
-    setSelectedCustomer(customers.find(c => c.id === sourceOrder.customerId))
-    setOrderLines(sourceOrder.orderLines)
-    setShippingMethod(sourceOrder.shippingMethod || '')
-    setPaymentTerms(sourceOrder.paymentTerms)
-    setCurrency(sourceOrder.currency)
-    setNotes(sourceOrder.notes || '')
-    setCustomerNotes(sourceOrder.customerNotes || '')
-    setInternalNotes(sourceOrder.internalNotes || '')
-    setCopyFromDialogOpen(false)
-  }
+    setSelectedCustomer(customers.find((c) => c.id === sourceOrder.customerId));
+    setOrderLines(sourceOrder.orderLines);
+    setShippingMethod(sourceOrder.shippingMethod || "");
+    setPaymentTerms(sourceOrder.paymentTerms);
+    setCurrency(sourceOrder.currency);
+    setNotes(sourceOrder.notes || "");
+    setCustomerNotes(sourceOrder.customerNotes || "");
+    setInternalNotes(sourceOrder.internalNotes || "");
+    setCopyFromDialogOpen(false);
+  };
 
   const handleCopyTo = (targetType: string) => {
-    console.log(`Copying current order to ${targetType}`)
-    setCopyToDialogOpen(false)
-  }
+    console.log(`Copying current order to ${targetType}`);
+    setCopyToDialogOpen(false);
+  };
 
   useEffect(() => {
-    if (selectedCustomer && calculateTotal() > (selectedCustomer.creditLimit || 0)) {
-      setCreditLimitWarning(true)
+    if (
+      selectedCustomer &&
+      calculateTotal() > (selectedCustomer.creditLimit || 0)
+    ) {
+      setCreditLimitWarning(true);
     } else {
-      setCreditLimitWarning(false)
+      setCreditLimitWarning(false);
     }
-  }, [selectedCustomer, orderLines])
+  }, [selectedCustomer, orderLines]);
 
   const handleAddOrderLine = (orderLine: Partial<OrderLine>) => {
     const newOrderLine = {
       ...orderLine,
       id: Math.random().toString(),
       subTotal: (orderLine.quantity ?? 0) * (orderLine.unitPrice ?? 0),
-      total: (orderLine.quantity ?? 0) * (orderLine.unitPrice ?? 0) * (1 + (orderLine.taxRate ?? 0) / 100) * (1 - (orderLine.discount ?? 0) / 100)
-    } as OrderLine
+      total:
+        (orderLine.quantity ?? 0) *
+        (orderLine.unitPrice ?? 0) *
+        (1 + (orderLine.taxRate ?? 0) / 100) *
+        (1 - (orderLine.discount ?? 0) / 100),
+    } as OrderLine;
 
-    setOrderLines([...orderLines, newOrderLine])
-  }
+    setOrderLines([...orderLines, newOrderLine]);
+  };
 
   const handleUpdateOrderLine = (updatedLine: OrderLine) => {
-    setOrderLines(orderLines.map(line => 
-      line.id === updatedLine.id ? updatedLine : line
-    ))
-  }
+    setOrderLines(
+      orderLines.map((line) =>
+        line.id === updatedLine.id ? updatedLine : line
+      )
+    );
+  };
 
-  const handleDeleteOrderLine = (id: string) => {
-    setOrderLines(orderLines.filter(ol => ol.id !== id))
-    setSelectedOrderLines(selectedOrderLines.filter(lineId => lineId !== id))
-  }
+
+  const handleDeleteOrderLine = async (id: string) => {
+    await deleteOrderLine(id);
+  };
 
   const handleToggleRecurring = (id: string) => {
-    setOrderLines(orderLines.map(line =>
-      line.id === id ? { ...line, isRecurring: !line.isRecurring } : line
-    ))
-  }
+    setOrderLines(
+      orderLines.map((line) =>
+        line.id === id ? { ...line, isRecurring: !line.isRecurring } : line
+      )
+    );
+  };
 
   const calculateTotal = () => {
-    return orderLines.reduce((sum, line) => sum + (line.total ?? 0), 0)
-  }
+    return orderLines.reduce((sum, line) => sum + (line.total ?? 0), 0);
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      setAttachments([...attachments, ...Array.from(e.target.files)])
+      setAttachments([...attachments, ...Array.from(e.target.files)]);
     }
-  }
+  };
 
   const handleRemoveAttachment = (index: number) => {
-    setAttachments(attachments.filter((_, i) => i !== index))
-  }
+    setAttachments(attachments.filter((_, i) => i !== index));
+  };
 
   const handleCreateCustomer = (customer: Customer) => {
-    customers.push(customer)
-    setSelectedCustomer(customer)
-  }
+    customers.push(customer);
+    setSelectedCustomer(customer);
+  };
 
   const handleBulkUpload = (file: File) => {
-    console.log(`Bulk upload file: ${file.name}`)
-    setBulkUploadOpen(false)
-  }
+    console.log(`Bulk upload file: ${file.name}`);
+    setBulkUploadOpen(false);
+  };
 
   const handleAddExistingProduct = (product: Product) => {
     const newOrderLine: OrderLine = {
@@ -293,96 +423,105 @@ export default function CreateSalesOrder() {
       total: product.unitPrice * (1 + product.taxRate / 100),
       unit: "piece",
       warehouse: warehouses[0].id,
-      isCustom: false
-    }
-    setOrderLines([...orderLines, newOrderLine])
-  }
+      isCustom: false,
+    };
+    setOrderLines([...orderLines, newOrderLine]);
+  };
 
   const handleAddFavoriteProducts = (newOrderLines: OrderLine[]) => {
-    setOrderLines([...orderLines, ...newOrderLines])
-  }
+    setOrderLines([...orderLines, ...newOrderLines]);
+  };
 
   const handleDragEnd = (event: any) => {
-    const { active, over } = event
+    const { active, over } = event;
 
     if (active.id !== over.id) {
       setOrderLines((items) => {
-        const oldIndex = items.findIndex((item) => item.id === active.id)
-        const newIndex = items.findIndex((item) => item.id === over.id)
+        const oldIndex = items.findIndex((item) => item.id === active.id);
+        const newIndex = items.findIndex((item) => item.id === over.id);
 
-        return arrayMove(items, oldIndex, newIndex)
-      })
+        return arrayMove(items, oldIndex, newIndex);
+      });
     }
-  }
+  };
 
   const handleApplyDiscount = (discount: number) => {
-    setOrderLines(orderLines.map(line =>
-      selectedOrderLines.includes(line.id)
-        ? {
-            ...line,
-            discount,
-            total: line.subTotal * (1 + line.taxRate / 100) * (1 - discount / 100)
-          }
-        : line
-    ))
-  }
+    setOrderLines(
+      orderLines.map((line) =>
+        selectedOrderLines.includes(line.id)
+          ? {
+              ...line,
+              discount,
+              total:
+                line.subTotal * (1 + line.taxRate / 100) * (1 - discount / 100),
+            }
+          : line
+      )
+    );
+  };
 
   const handleApplyTax = (tax: number) => {
-    setOrderLines(orderLines.map(line =>
-      selectedOrderLines.includes(line.id)
-        ? {
-            ...line,
-            taxRate: tax,
-            total: line.subTotal * (1 + tax / 100) * (1 - line.discount / 100)
-          }
-        : line
-    ))
-  }
+    setOrderLines(
+      orderLines.map((line) =>
+        selectedOrderLines.includes(line.id)
+          ? {
+              ...line,
+              taxRate: tax,
+              total:
+                line.subTotal * (1 + tax / 100) * (1 - line.discount / 100),
+            }
+          : line
+      )
+    );
+  };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-        return
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement
+      ) {
+        return;
       }
 
       if (e.metaKey || e.ctrlKey) {
         switch (e.key) {
-          case 's':
-            e.preventDefault()
-            setStatus('draft')
-            break
-          case 'Enter':
-            e.preventDefault()
-            setStatus('pending')
-            break
-          case 'b':
-            e.preventDefault()
-            setOrderLineDialogOpen(true)
-            break
-          case '/':
-            e.preventDefault()
-            setShortcutsOpen(true)
-            break
+          case "s":
+            e.preventDefault();
+            setStatus("draft");
+            break;
+          case "Enter":
+            e.preventDefault();
+            setStatus("pending");
+            break;
+          case "b":
+            e.preventDefault();
+            setOrderLineDialogOpen(true);
+            break;
+          case "/":
+            e.preventDefault();
+            setShortcutsOpen(true);
+            break;
         }
       }
-    }
+    };
 
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [])
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const handlePreviewTemplate = (template: SalesOrder) => {
-    setPreviewOpen(true)
+    setPreviewOpen(true);
     const previewOrder = {
       ...template,
       orderNumber: `PREVIEW-${template.orderNumber}`,
       orderDate: new Date(),
-    }
-    setSelectedCustomer(undefined) 
-    setOrderLines(template.orderLines)
-    setPaymentTerms(template.paymentTerms)
-    setCurrency(template.currency)
-  }
+    };
+    setSelectedCustomer(undefined);
+    setOrderLines(template.orderLines);
+    setPaymentTerms(template.paymentTerms);
+    setCurrency(template.currency);
+  };
 
   return (
     <div className="container mx-auto py-6 space-y-6">
@@ -400,10 +539,14 @@ export default function CreateSalesOrder() {
           <TooltipProvider>
             <TooltipRoot>
               <TooltipTrigger asChild>
-                <div/>
+                <div />
               </TooltipTrigger>
               <TooltipContent>
-                <p>Create and manage sales orders with a comprehensive form. Configure customer details, order lines, shipping, and payment information all in one place.</p>
+                <p>
+                  Create and manage sales orders with a comprehensive form.
+                  Configure customer details, order lines, shipping, and payment
+                  information all in one place.
+                </p>
               </TooltipContent>
             </TooltipRoot>
           </TooltipProvider>
@@ -418,47 +561,77 @@ export default function CreateSalesOrder() {
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Preview the complete order before finalizing. Review all details including customer information, order lines, and totals.</p>
+                <p>
+                  Preview the complete order before finalizing. Review all
+                  details including customer information, order lines, and
+                  totals.
+                </p>
               </TooltipContent>
             </TooltipRoot>
           </TooltipProvider>
           <TooltipProvider>
             <TooltipRoot>
               <TooltipTrigger asChild>
-                <Button variant="outline" onClick={() => setCopyFromDialogOpen(true)}>Copy From</Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setCopyFromDialogOpen(true)}
+                >
+                  Copy From
+                </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Create a new order by copying details from an existing order or template. Useful for recurring orders.</p>
+                <p>
+                  Create a new order by copying details from an existing order
+                  or template. Useful for recurring orders.
+                </p>
               </TooltipContent>
             </TooltipRoot>
           </TooltipProvider>
           <TooltipProvider>
             <TooltipRoot>
               <TooltipTrigger asChild>
-                <Button variant="outline" onClick={() => setCopyToDialogOpen(true)}>Copy To</Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setCopyToDialogOpen(true)}
+                >
+                  Copy To
+                </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Copy this order to create a new document type (e.g., quotation, invoice, or purchase order).</p>
+                <p>
+                  Copy this order to create a new document type (e.g.,
+                  quotation, invoice, or purchase order).
+                </p>
               </TooltipContent>
             </TooltipRoot>
           </TooltipProvider>
           <TooltipProvider>
             <TooltipRoot>
               <TooltipTrigger asChild>
-                <Button variant="outline" onClick={() => setStatus('draft')}>Save as Draft</Button>
+                <Button variant="outline" onClick={() => setStatus("draft")}>
+                  Save as Draft
+                </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Save the current order as a draft to continue editing later. All information will be preserved.</p>
+                <p>
+                  Save the current order as a draft to continue editing later.
+                  All information will be preserved.
+                </p>
               </TooltipContent>
             </TooltipRoot>
           </TooltipProvider>
           <TooltipProvider>
             <TooltipRoot>
               <TooltipTrigger asChild>
-                <Button onClick={() => setStatus('pending')}>Create Order</Button>
+                <Button onClick={() => setStatus("pending")}>
+                  Create Order
+                </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Finalize and create the sales order. This will move the order to pending status and notify relevant parties.</p>
+                <p>
+                  Finalize and create the sales order. This will move the order
+                  to pending status and notify relevant parties.
+                </p>
               </TooltipContent>
             </TooltipRoot>
           </TooltipProvider>
@@ -470,7 +643,8 @@ export default function CreateSalesOrder() {
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Credit Limit Warning</AlertTitle>
           <AlertDescription>
-            The total order amount exceeds the customer&apos;s credit limit. Please review before proceeding.
+            The total order amount exceeds the customer&apos;s credit limit.
+            Please review before proceeding.
           </AlertDescription>
         </Alert>
       )}
@@ -481,7 +655,7 @@ export default function CreateSalesOrder() {
             <CardTitle>Customer Information</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <CustomerManagement 
+            <CustomerManagement
               customers={customerData}
               selectedCustomer={selectedCustomer}
               onSelectCustomer={setSelectedCustomer}
@@ -490,7 +664,7 @@ export default function CreateSalesOrder() {
             <TooltipProvider>
               <TooltipRoot>
                 <TooltipTrigger asChild>
-                  <div/>
+                  <div />
                 </TooltipTrigger>
                 <TooltipContent>
                   <p>info box text</p>
@@ -502,31 +676,43 @@ export default function CreateSalesOrder() {
                 <div className="space-y-2">
                   <h3 className="font-medium">Billing Address</h3>
                   <p className="text-sm text-muted-foreground">
-                    {selectedCustomer.billingAddress.street}<br />
-                    {selectedCustomer.billingAddress.city}, {selectedCustomer.billingAddress.state} {selectedCustomer.billingAddress.postalCode}<br />
+                    {selectedCustomer.billingAddress.street}
+                    <br />
+                    {selectedCustomer.billingAddress.city},{" "}
+                    {selectedCustomer.billingAddress.state}{" "}
+                    {selectedCustomer.billingAddress.postalCode}
+                    <br />
                     {selectedCustomer.billingAddress.country}
                   </p>
                 </div>
                 <div className="space-y-2">
                   <h3 className="font-medium">Shipping Address</h3>
                   <p className="text-sm text-muted-foreground">
-                    {selectedCustomer.shippingAddress.street}<br />
-                    {selectedCustomer.shippingAddress.city}, {selectedCustomer.shippingAddress.state} {selectedCustomer.shippingAddress.postalCode}<br />
+                    {selectedCustomer.shippingAddress.street}
+                    <br />
+                    {selectedCustomer.shippingAddress.city},{" "}
+                    {selectedCustomer.shippingAddress.state}{" "}
+                    {selectedCustomer.shippingAddress.postalCode}
+                    <br />
                     {selectedCustomer.shippingAddress.country}
                   </p>
                 </div>
                 <div className="space-y-2">
                   <h3 className="font-medium">Contact Information</h3>
                   <p className="text-sm text-muted-foreground">
-                    {selectedCustomer.phone}<br />
+                    {selectedCustomer.phone}
+                    <br />
                     {selectedCustomer.email}
                   </p>
                 </div>
                 <div className="space-y-2">
                   <h3 className="font-medium">Financial Information</h3>
                   <p className="text-sm text-muted-foreground">
-                    Tax ID: {selectedCustomer.taxId}<br />
-                    Credit Limit: ${selectedCustomer.creditLimit?.toLocaleString()}<br />
+                    Tax ID: {selectedCustomer.taxId}
+                    <br />
+                    Credit Limit: $
+                    {selectedCustomer.creditLimit?.toLocaleString()}
+                    <br />
                     Payment Terms: {selectedCustomer.paymentTerms}
                   </p>
                 </div>
@@ -565,14 +751,15 @@ export default function CreateSalesOrder() {
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>Set the current status of the order. Each status represents a different stage in the order lifecycle:
-                        - Draft: Order is being prepared
-                        - Pending: Awaiting approval or processing
-                        - Confirmed: Order has been approved
-                        - Processing: Items being prepared
-                        - Shipped: Order in transit
-                        - Delivered: Order completed
-                        - Cancelled: Order terminated</p>
+                      <p>
+                        Set the current status of the order. Each status
+                        represents a different stage in the order lifecycle: -
+                        Draft: Order is being prepared - Pending: Awaiting
+                        approval or processing - Confirmed: Order has been
+                        approved - Processing: Items being prepared - Shipped:
+                        Order in transit - Delivered: Order completed -
+                        Cancelled: Order terminated
+                      </p>
                     </TooltipContent>
                   </TooltipRoot>
                 </TooltipProvider>
@@ -593,7 +780,7 @@ export default function CreateSalesOrder() {
               </Select>
             </div>
 
-            {['Order Date', 'Delivery Date', 'Due Date'].map((label) => {
+            {["Order Date", "Delivery Date", "Due Date"].map((label) => {
               return (
                 <div key={label} className="space-y-2">
                   <div className="flex items-center gap-2">
@@ -606,9 +793,29 @@ export default function CreateSalesOrder() {
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>
-                          {label === 'Order Date' && <p>The date when the order was placed. This date will be used for order tracking and processing timelines. It affects payment terms and delivery calculations.</p>}
-                          {label === 'Delivery Date' && <p>Expected date of delivery to the customer. This date considers processing time, shipping method, and destination. It will be communicated to the customer for delivery planning.</p>}
-                          {label === 'Due Date' && <p>Payment due date for this order. This date is calculated based on the selected payment terms and affects payment scheduling and reminders.</p>}
+                          {label === "Order Date" && (
+                            <p>
+                              The date when the order was placed. This date will
+                              be used for order tracking and processing
+                              timelines. It affects payment terms and delivery
+                              calculations.
+                            </p>
+                          )}
+                          {label === "Delivery Date" && (
+                            <p>
+                              Expected date of delivery to the customer. This
+                              date considers processing time, shipping method,
+                              and destination. It will be communicated to the
+                              customer for delivery planning.
+                            </p>
+                          )}
+                          {label === "Due Date" && (
+                            <p>
+                              Payment due date for this order. This date is
+                              calculated based on the selected payment terms and
+                              affects payment scheduling and reminders.
+                            </p>
+                          )}
                         </TooltipContent>
                       </TooltipRoot>
                     </TooltipProvider>
@@ -619,23 +826,32 @@ export default function CreateSalesOrder() {
                         variant="outline"
                         className={cn(
                           "w-full justify-start text-left font-normal",
-                          !selectedDates[label.toLowerCase().replace(/ /g, '')] && "text-muted-foreground"
+                          !selectedDates[
+                            label.toLowerCase().replace(/ /g, "")
+                          ] && "text-muted-foreground"
                         )}
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {selectedDates[label.toLowerCase().replace(/ /g, '')] ? 
-                          format(selectedDates[label.toLowerCase().replace(/ /g, '')], 'PPP') : 
-                          `Select ${label.toLowerCase()}`}
+                        {selectedDates[label.toLowerCase().replace(/ /g, "")]
+                          ? format(
+                              selectedDates[
+                                label.toLowerCase().replace(/ /g, "")
+                              ],
+                              "PPP"
+                            )
+                          : `Select ${label.toLowerCase()}`}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
                       <Calendar
                         mode="single"
-                        selected={selectedDates[label.toLowerCase().replace(/ /g, '')]}
-                        onSelect={(date) => 
-                          setSelectedDates(prev => ({
+                        selected={
+                          selectedDates[label.toLowerCase().replace(/ /g, "")]
+                        }
+                        onSelect={(date) =>
+                          setSelectedDates((prev) => ({
                             ...prev,
-                            [label.toLowerCase().replace(/ /g, '')]: date
+                            [label.toLowerCase().replace(/ /g, "")]: date,
                           }))
                         }
                         initialFocus
@@ -660,7 +876,10 @@ export default function CreateSalesOrder() {
                 </TabsTrigger>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Manage order lines, products, and item details. Add, edit, or remove items from your order.</p>
+                <p>
+                  Manage order lines, products, and item details. Add, edit, or
+                  remove items from your order.
+                </p>
               </TooltipContent>
             </TooltipRoot>
           </TooltipProvider>
@@ -673,7 +892,10 @@ export default function CreateSalesOrder() {
                 </TabsTrigger>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Access and manage order templates. Save current order as a template or load existing templates.</p>
+                <p>
+                  Access and manage order templates. Save current order as a
+                  template or load existing templates.
+                </p>
               </TooltipContent>
             </TooltipRoot>
           </TooltipProvider>
@@ -686,7 +908,10 @@ export default function CreateSalesOrder() {
                 </TabsTrigger>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Configure shipping details, delivery methods, and warehouse information for this order.</p>
+                <p>
+                  Configure shipping details, delivery methods, and warehouse
+                  information for this order.
+                </p>
               </TooltipContent>
             </TooltipRoot>
           </TooltipProvider>
@@ -699,7 +924,10 @@ export default function CreateSalesOrder() {
                 </TabsTrigger>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Manage financial aspects including payment terms, currency, and tax information.</p>
+                <p>
+                  Manage financial aspects including payment terms, currency,
+                  and tax information.
+                </p>
               </TooltipContent>
             </TooltipRoot>
           </TooltipProvider>
@@ -712,7 +940,10 @@ export default function CreateSalesOrder() {
                 </TabsTrigger>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Upload and manage documents related to this order such as specifications or supporting files.</p>
+                <p>
+                  Upload and manage documents related to this order such as
+                  specifications or supporting files.
+                </p>
               </TooltipContent>
             </TooltipRoot>
           </TooltipProvider>
@@ -725,7 +956,10 @@ export default function CreateSalesOrder() {
                 </TabsTrigger>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Generate and manage invoices for this order. Send invoices to customers and track payment status.</p>
+                <p>
+                  Generate and manage invoices for this order. Send invoices to
+                  customers and track payment status.
+                </p>
               </TooltipContent>
             </TooltipRoot>
           </TooltipProvider>
@@ -746,19 +980,29 @@ export default function CreateSalesOrder() {
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>Add a new product or service to this order. You can select from your product catalog or create a custom item.</p>
+                        <p>
+                          Add a new product or service to this order. You can
+                          select from your product catalog or create a custom
+                          item.
+                        </p>
                       </TooltipContent>
                     </TooltipRoot>
                   </TooltipProvider>
                   <TooltipProvider>
                     <TooltipRoot>
                       <TooltipTrigger asChild>
-                        <Button onClick={() => setBulkUploadOpen(true)} variant="outline">
+                        <Button
+                          onClick={() => setBulkUploadOpen(true)}
+                          variant="outline"
+                        >
                           Bulk Upload
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>Upload multiple items at once using a CSV or Excel file. Perfect for large orders with many line items.</p>
+                        <p>
+                          Upload multiple items at once using a CSV or Excel
+                          file. Perfect for large orders with many line items.
+                        </p>
                       </TooltipContent>
                     </TooltipRoot>
                   </TooltipProvider>
@@ -766,7 +1010,9 @@ export default function CreateSalesOrder() {
               </CardHeader>
               <CardContent>
                 <BatchActions
-                  selectedLines={orderLines.filter(line => selectedOrderLines.includes(line.id))}
+                  selectedLines={orderLines.filter((line) =>
+                    selectedOrderLines.includes(line.id)
+                  )}
                   onApplyDiscount={handleApplyDiscount}
                   onApplyTax={handleApplyTax}
                 />
@@ -780,12 +1026,16 @@ export default function CreateSalesOrder() {
                       <TableRow>
                         <TableHead className="w-[50px]">
                           <Checkbox
-                            checked={selectedOrderLines.length === orderLines.length}
+                            checked={
+                              selectedOrderLines.length === orderLines.length
+                            }
                             onCheckedChange={(checked) => {
                               if (checked) {
-                                setSelectedOrderLines(orderLines.map(line => line.id))
+                                setSelectedOrderLines(
+                                  orderLines.map((line) => line.id)
+                                );
                               } else {
-                                setSelectedOrderLines([])
+                                setSelectedOrderLines([]);
                               }
                             }}
                           />
@@ -826,25 +1076,55 @@ export default function CreateSalesOrder() {
                   <div className="p-4 space-y-2">
                     <div className="flex justify-between gap-8">
                       <span className="text-sm font-medium">Subtotal:</span>
-                      <span className="text-sm">${orderLines.reduce((sum, line) => sum + (line.subTotal ?? 0), 0).toFixed(2)}</span>
+                      <span className="text-sm">
+                        $
+                        {orderLines
+                          .reduce((sum, line) => sum + (line.subTotal ?? 0), 0)
+                          .toFixed(2)}
+                      </span>
                     </div>
                     <div className="flex justify-between gap-8">
                       <span className="text-sm font-medium">Discounts:</span>
-                      <span className="text-sm">-${orderLines.reduce((sum, line) => sum + ((line.subTotal ?? 0) * (line.discount ?? 0) / 100), 0).toFixed(2)}</span>
+                      <span className="text-sm">
+                        -$
+                        {orderLines
+                          .reduce(
+                            (sum, line) =>
+                              sum +
+                              ((line.subTotal ?? 0) * (line.discount ?? 0)) /
+                                100,
+                            0
+                          )
+                          .toFixed(2)}
+                      </span>
                     </div>
                     <div className="flex justify-between gap-8">
                       <span className="text-sm font-medium">Tax Total:</span>
-                      <span className="text-sm">${orderLines.reduce((sum, line) => sum + ((line.total ?? 0) - (line.subTotal ?? 0)), 0).toFixed(2)}</span>
+                      <span className="text-sm">
+                        $
+                        {orderLines
+                          .reduce(
+                            (sum, line) =>
+                              sum + ((line.total ?? 0) - (line.subTotal ?? 0)),
+                            0
+                          )
+                          .toFixed(2)}
+                      </span>
                     </div>
                     <div className="flex justify-between gap-8 pt-2 border-t">
                       <span className="font-semibold">Total:</span>
-                      <span className="font-semibold">${calculateTotal().toFixed(2)}</span>
+                      <span className="font-semibold">
+                        ${calculateTotal().toFixed(2)}
+                      </span>
                     </div>
                   </div>
                 </div>
-              </CardContent>            </Card>
+              </CardContent>{" "}
+            </Card>
 
-            <div className="space-y-6">              <QuickAddFavorites
+            <div className="space-y-6">
+              {" "}
+              <QuickAddFavorites
                 favoriteProducts={favoriteProducts}
                 productBundles={productBundles}
                 onAddToOrder={handleAddFavoriteProducts}
@@ -869,16 +1149,28 @@ export default function CreateSalesOrder() {
                     orderDate: selectedDates.orderDate,
                     orderLines,
                     subtotal: calculateTotal(),
-                    taxTotal: orderLines.reduce((sum, line) => sum + ((line.total ?? 0) - (line.subTotal ?? 0)), 0),
-                    discountTotal: orderLines.reduce((sum, line) => sum + ((line.subTotal ?? 0) * (line.discount ?? 0) / 100), 0),
-                    shippingCost: shippingMethod ? shippingMethods.find(m => m.id === shippingMethod)?.cost ?? 0 : 0,
+                    taxTotal: orderLines.reduce(
+                      (sum, line) =>
+                        sum + ((line.total ?? 0) - (line.subTotal ?? 0)),
+                      0
+                    ),
+                    discountTotal: orderLines.reduce(
+                      (sum, line) =>
+                        sum +
+                        ((line.subTotal ?? 0) * (line.discount ?? 0)) / 100,
+                      0
+                    ),
+                    shippingCost: shippingMethod
+                      ? shippingMethods.find((m) => m.id === shippingMethod)
+                          ?.cost ?? 0
+                      : 0,
                     total: calculateTotal(),
                     notes: notes,
                     paymentTerms: paymentTerms,
                     currency: currency,
                     customerId: selectedCustomer?.id,
                     paymentMethod: paymentMethod,
-                    isPaid: isPaid
+                    isPaid: isPaid,
                   }}
                   templates={templates}
                   setTemplates={setTemplates}
@@ -896,13 +1188,25 @@ export default function CreateSalesOrder() {
                     orderDate: selectedDates.orderDate,
                     orderLines,
                     subtotal: calculateTotal(),
-                    taxTotal: orderLines.reduce((sum, line) => sum + ((line.total ?? 0) - (line.subTotal ?? 0)), 0),
-                    discountTotal: orderLines.reduce((sum, line) => sum + ((line.subTotal ?? 0) * (line.discount ?? 0) / 100), 0),
-                    shippingCost: shippingMethod ? shippingMethods.find(m => m.id === shippingMethod)?.cost ?? 0 : 0,
+                    taxTotal: orderLines.reduce(
+                      (sum, line) =>
+                        sum + ((line.total ?? 0) - (line.subTotal ?? 0)),
+                      0
+                    ),
+                    discountTotal: orderLines.reduce(
+                      (sum, line) =>
+                        sum +
+                        ((line.subTotal ?? 0) * (line.discount ?? 0)) / 100,
+                      0
+                    ),
+                    shippingCost: shippingMethod
+                      ? shippingMethods.find((m) => m.id === shippingMethod)
+                          ?.cost ?? 0
+                      : 0,
                     total: calculateTotal(),
                     notes: notes,
                     paymentTerms: paymentTerms,
-                    currency: currency
+                    currency: currency,
                   }}
                   customer={selectedCustomer}
                 />
@@ -917,24 +1221,32 @@ export default function CreateSalesOrder() {
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Shipping Method</label>
-                    <Select value={shippingMethod} onValueChange={setShippingMethod}>
+                    <label className="text-sm font-medium">
+                      Shipping Method
+                    </label>
+                    <Select
+                      value={shippingMethod}
+                      onValueChange={setShippingMethod}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Select shipping method" />
                       </SelectTrigger>
                       <SelectContent>
                         {shippingMethods.map((method) => (
                           <SelectItem key={method.id} value={method.id}>
-                            {method.name} (${method.cost.toFixed(2)}) - Est. {method.estimatedDeliveryDays} days
+                            {method.name} (${method.cost.toFixed(2)}) - Est.{" "}
+                            {method.estimatedDeliveryDays} days
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Tracking Number</label>
-                    <Input 
-                      placeholder="Enter tracking number" 
+                    <label className="text-sm font-medium">
+                      Tracking Number
+                    </label>
+                    <Input
+                      placeholder="Enter tracking number"
                       value={trackingNumber}
                       onChange={(e) => setTrackingNumber(e.target.value)}
                     />
@@ -957,8 +1269,10 @@ export default function CreateSalesOrder() {
                 </div>
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Shipping Notes</label>
-                    <Textarea 
+                    <label className="text-sm font-medium">
+                      Shipping Notes
+                    </label>
+                    <Textarea
                       placeholder="Add any special shipping instructions"
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
@@ -977,7 +1291,10 @@ export default function CreateSalesOrder() {
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Payment Terms</label>
-                    <Select value={paymentTerms} onValueChange={setPaymentTerms}>
+                    <Select
+                      value={paymentTerms}
+                      onValueChange={setPaymentTerms}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Select payment terms" />
                       </SelectTrigger>
@@ -1004,8 +1321,13 @@ export default function CreateSalesOrder() {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Payment Method</label>
-                    <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+                    <label className="text-sm font-medium">
+                      Payment Method
+                    </label>
+                    <Select
+                      value={paymentMethod}
+                      onValueChange={setPaymentMethod}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Select payment method" />
                       </SelectTrigger>
@@ -1019,10 +1341,12 @@ export default function CreateSalesOrder() {
                     </Select>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Checkbox 
+                    <Checkbox
                       id="paid"
                       checked={isPaid}
-                      onCheckedChange={(checked) => setIsPaid(checked as boolean)}
+                      onCheckedChange={(checked) =>
+                        setIsPaid(checked as boolean)
+                      }
                     />
                     <label
                       htmlFor="paid"
@@ -1035,15 +1359,23 @@ export default function CreateSalesOrder() {
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Tax ID</label>
-                    <Input placeholder="Enter tax ID" value={selectedCustomer?.taxId || ''} disabled />
+                    <Input
+                      placeholder="Enter tax ID"
+                      value={selectedCustomer?.taxId || ""}
+                      disabled
+                    />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Reference Number</label>
+                    <label className="text-sm font-medium">
+                      Reference Number
+                    </label>
                     <Input placeholder="Enter reference number" />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Internal Notes</label>
-                    <Textarea 
+                    <label className="text-sm font-medium">
+                      Internal Notes
+                    </label>
+                    <Textarea
                       placeholder="Add internal notes (not visible to customers)"
                       value={internalNotes}
                       onChange={(e) => setInternalNotes(e.target.value)}
@@ -1059,12 +1391,16 @@ export default function CreateSalesOrder() {
           <Card>
             <CardHeader>
               <CardTitle>Attachments</CardTitle>
-              <CardDescription>Upload and manage documents related to this order</CardDescription>
+              <CardDescription>
+                Upload and manage documents related to this order
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <EnhancedAttachments
                 attachments={attachments}
-                onAddAttachments={(files) => setAttachments([...attachments, ...files])}
+                onAddAttachments={(files) =>
+                  setAttachments([...attachments, ...files])
+                }
                 onRemoveAttachment={handleRemoveAttachment}
               />
             </CardContent>
@@ -1084,13 +1420,24 @@ export default function CreateSalesOrder() {
                   orderDate: selectedDates.orderDate,
                   orderLines,
                   subtotal: calculateTotal(),
-                  taxTotal: orderLines.reduce((sum, line) => sum + ((line.total ?? 0) - (line.subTotal ?? 0)), 0),
-                  discountTotal: orderLines.reduce((sum, line) => sum + ((line.subTotal ?? 0) * (line.discount ?? 0) / 100), 0),
-                  shippingCost: shippingMethod ? shippingMethods.find(m => m.id === shippingMethod)?.cost ?? 0 : 0,
+                  taxTotal: orderLines.reduce(
+                    (sum, line) =>
+                      sum + ((line.total ?? 0) - (line.subTotal ?? 0)),
+                    0
+                  ),
+                  discountTotal: orderLines.reduce(
+                    (sum, line) =>
+                      sum + ((line.subTotal ?? 0) * (line.discount ?? 0)) / 100,
+                    0
+                  ),
+                  shippingCost: shippingMethod
+                    ? shippingMethods.find((m) => m.id === shippingMethod)
+                        ?.cost ?? 0
+                    : 0,
                   total: calculateTotal(),
                   notes: notes,
                   paymentTerms: paymentTerms,
-                  currency: currency
+                  currency: currency,
                 }}
                 customer={selectedCustomer}
               />
@@ -1131,11 +1478,13 @@ export default function CreateSalesOrder() {
           <div className="grid gap-4 py-4">
             <div className="grid w-full max-w-sm items-center gap-1.5">
               <Label htmlFor="bulk-upload">Upload CSV/Excel File</Label>
-              <Input 
+              <Input
                 id="bulk-upload"
-                type="file" 
+                type="file"
                 accept=".csv,.xlsx,.xls"
-                onChange={(e) => e.target.files && handleBulkUpload(e.target.files[0])}
+                onChange={(e) =>
+                  e.target.files && handleBulkUpload(e.target.files[0])
+                }
               />
             </div>
           </div>
@@ -1161,14 +1510,20 @@ export default function CreateSalesOrder() {
               orderDate: selectedDates.orderDate,
               orderLines,
               subtotal: calculateTotal(),
-              taxTotal: orderLines.reduce((sum, line) => sum + ((line.total ?? 0) - (line.subTotal ?? 0)), 0),
-              discountTotal: orderLines.reduce((sum, line) => sum + ((line.subTotal ?? 0) * (line.discount ?? 0) / 100), 0),
+              taxTotal: orderLines.reduce(
+                (sum, line) => sum + ((line.total ?? 0) - (line.subTotal ?? 0)),
+                0
+              ),
+              discountTotal: orderLines.reduce(
+                (sum, line) =>
+                  sum + ((line.subTotal ?? 0) * (line.discount ?? 0)) / 100,
+                0
+              ),
               total: calculateTotal(),
             }}
           />
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }
-

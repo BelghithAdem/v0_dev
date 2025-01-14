@@ -14,9 +14,9 @@ interface QuickAddFavoritesProps {
 }
 
 export function QuickAddFavorites({ favoriteProducts, productBundles, onAddToOrder }: QuickAddFavoritesProps) {
-  const [quantities, setQuantities] = useState<{ [key: string]: number }>({})
+  const [quantities, setQuantities] = useState<{ [key: number]: number }>({})
 
-  const handleQuantityChange = (id: string, value: number) => {
+  const handleQuantityChange = (id: number, value: number) => {
     setQuantities(prev => ({ ...prev, [id]: value }))
   }
 
@@ -24,17 +24,14 @@ export function QuickAddFavorites({ favoriteProducts, productBundles, onAddToOrd
     const quantity = quantities[product.id] || 1
     onAddToOrder([{
       id: Math.random().toString(),
-      productId: product.id,
-      productName: product.name,
-      productCode: product.code,
-      quantity,
-      unitPrice: product.unitPrice,
-      taxRate: product.taxRate,
+      product_id: product.id,
+      product_name: product.name,
+      product_price: product.price,
+      product_type: product.type,
+      qty: quantity,
       discount: 0,
-      subTotal: product.unitPrice * quantity,
-      total: product.unitPrice * quantity * (1 + product.taxRate / 100),
-      unit: "piece",
-      isCustom: false
+      tax_rate: 0, // Assuming no tax rate in the Product type, set to 0
+      unit_id: null // Assuming no unit_id in the Product type, set to null
     }])
     setQuantities(prev => ({ ...prev, [product.id]: 1 }))
   }
@@ -42,17 +39,14 @@ export function QuickAddFavorites({ favoriteProducts, productBundles, onAddToOrd
   const handleAddBundle = (bundle: { id: string; name: string; products: Product[] }) => {
     const orderLines = bundle.products.map(product => ({
       id: Math.random().toString(),
-      productId: product.id,
-      productName: product.name,
-      productCode: product.code,
-      quantity: 1,
-      unitPrice: product.unitPrice,
-      taxRate: product.taxRate,
+      product_id: product.id,
+      product_name: product.name,
+      product_price: product.price,
+      product_type: product.type,
+      qty: 1,
       discount: 0,
-      subTotal: product.unitPrice,
-      total: product.unitPrice * (1 + product.taxRate / 100),
-      unit: "piece",
-      isCustom: false
+      tax_rate: 0, // Assuming no tax rate in the Product type, set to 0
+      unit_id: null // Assuming no unit_id in the Product type, set to null
     }))
     onAddToOrder(orderLines)
   }
@@ -73,7 +67,7 @@ export function QuickAddFavorites({ favoriteProducts, productBundles, onAddToOrd
               <div key={product.id} className="flex items-center justify-between">
                 <div>
                   <p className="font-medium">{product.name}</p>
-                  <p className="text-sm text-muted-foreground">${product.unitPrice.toFixed(2)}</p>
+                  <p className="text-sm text-muted-foreground">${product.price.toFixed(2)}</p>
                 </div>
                 <div className="flex items-center gap-2">
                   <Label htmlFor={`quantity-${product.id}`} className="sr-only">Quantity</Label>
@@ -109,7 +103,7 @@ export function QuickAddFavorites({ favoriteProducts, productBundles, onAddToOrd
                   <p className="font-medium">{bundle.name}</p>
                   <div className="flex gap-2 mt-1">
                     {bundle.products.map(product => (
-                      <Badge key={product.id} variant="secondary">{product.name}</Badge>
+                      <Badge key={product?.id} variant="secondary">{product?.country || 'N/A'}</Badge>
                     ))}
                   </div>
                 </div>

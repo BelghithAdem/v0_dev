@@ -30,9 +30,6 @@ export function ProductDetailsDialog({ product, open, onOpenChange }: ProductDet
               <h2 className="text-2xl font-semibold">{product.name}</h2>
               <p className="text-sm text-muted-foreground">{product.code}</p>
             </div>
-            <Badge variant={product.inStock > 20 ? "success" : product.inStock > 0 ? "warning" : "destructive"}>
-              {product.inStock} in stock
-            </Badge>
           </div>
 
           <p className="text-sm text-muted-foreground">{product.description}</p>
@@ -46,11 +43,7 @@ export function ProductDetailsDialog({ product, open, onOpenChange }: ProductDet
               <div className="space-y-1">
                 <div className="flex justify-between text-sm">
                   <span>Unit Price:</span>
-                  <span>${product.unitPrice.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span>Tax Rate:</span>
-                  <span>{product.taxRate}%</span>
+                  <span>${product.price.toFixed(2)}</span>
                 </div>
               </div>
             </Card>
@@ -62,25 +55,12 @@ export function ProductDetailsDialog({ product, open, onOpenChange }: ProductDet
               </div>
               <div className="space-y-1">
                 <div className="flex justify-between text-sm">
-                  <span>In Stock:</span>
-                  <span>{product.inStock} units</span>
-                </div>
-                <div className="flex justify-between text-sm">
                   <span>Category:</span>
                   <span>{product.category}</span>
                 </div>
               </div>
             </Card>
           </div>
-
-          {product.inStock < 10 && (
-            <Alert>
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                Low stock warning: Only {product.inStock} units remaining
-              </AlertDescription>
-            </Alert>
-          )}
 
           <Card className="p-4">
             <div className="flex items-center gap-2 mb-2">

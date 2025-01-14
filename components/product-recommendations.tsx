@@ -26,13 +26,9 @@ export function ProductRecommendations({ recommendations, onAddToOrder }: Produc
             <div key={product.id} className="flex items-center justify-between">
               <div>
                 <p className="font-medium">{product.name}</p>
-                <p className="text-sm text-muted-foreground">${product.unitPrice.toFixed(2)}</p>
+                <p className="text-sm text-muted-foreground">${product.price.toFixed(2)}</p>
               </div>
               <div className="flex items-center gap-2">
-                <Badge variant={product.inStock > 0 ? "secondary" : "destructive"}>
-                  {product.inStock > 0 ? `${product.inStock} in stock` : "Out of stock"}
-                </Badge>
-                <Button onClick={() => onAddToOrder(product)} disabled={product.inStock === 0}>Add</Button>
               </div>
             </div>
           ))}

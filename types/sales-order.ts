@@ -44,32 +44,68 @@ export interface Address {
   country: string
   postalCode: string
 }
-
 export interface Product {
-  id: string
-  name: string
-  code: string
-  description: string
-  unitPrice: number
-  taxRate: number
-  inStock: number
-  category: string
+  brand: string | null;
+  cat2: string;
+  code: string;
+  company_name: string | null;
+  company_other_1: string | null;
+  country: string | null;
+  date_created: string;
+  date_updated: string | null;
+  description: string;
+  description_zh_HANT: string | null;
+  detail: string | null;
+  detail_zh_HANT: string | null;
+  end_date: string | null;
+  id: number;
+  is_generate_fixed_day: boolean;
+  is_multi_unit: boolean;
+  membership_start_day: string | null;
+  name: string;
+  name_en_US: string | null;
+  name_zh_HANT: string | null;
+  parent_id: number | null;
+  period: string | null;
+  period_zh_HANT: string | null;
+  price: number;
+  price_discount: number | null;
+  raw: string | null;
+  recurring: string | null;
+  remark: string | null;
+  slug: string | null;
+  sort: number | null;
+  start_date: string | null;
+  status: string;
+  storage: string | null;
+  type: string;
+  weight: string | null;
+  x_days_before_eligibility_end_date: number;
+  duration: string | null;
+  user_created: string;
+  user_updated: string | null;
+  image: string | null;
+  orq: number;
+  category: number[];
+  inventory: any[];
+  children: any[];
+  product_option: any[];
+  product_variant: any[];
+  companies: number[];
+  unit: string | null;
+  units: any[];
+  image_url: string | null;
 }
-
 export interface OrderLine {
-  id: number
-  tax_rate: number
-  product_price: number
-  qty: number
-  discount: number
-  product_name: string
-  product_type: string
-  unit_id: any; // Replace `any` with the actual type for `unit_id` if available
-  product_id: {
-    name: string
-    code: string | null
-    price: number
-  }
+  id: string;
+  product_id: number | null;
+  product_name: string;
+  product_price: number;
+  product_type: string;
+  qty: number;
+  discount: number;
+  tax_rate: number;
+  unit_id: number | null;
 }
 
 export interface SalesOrder {
@@ -117,4 +153,12 @@ export interface PaymentMethod {
   id: string
   name: string
 }
+
+
+
+
+
+
+
+
 

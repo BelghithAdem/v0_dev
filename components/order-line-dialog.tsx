@@ -43,9 +43,9 @@ export function OrderLineDialog({
   exchangeRates
 }: OrderLineDialogProps) {
   const [formData, setFormData] = useState<Partial<OrderLine>>(orderLine || {
-    quantity: 1,
-    unitPrice: 0,
-    taxRate: 0,
+    qty: 1,
+    product_price: 0,
+    tax_rate: 0,
     discount: 0,
   })
   const [selectedProductId, setSelectedProductId] = useState<string>("")
@@ -57,12 +57,12 @@ export function OrderLineDialog({
   useEffect(() => {
     if (orderLine) {
       setFormData(orderLine)
-      setSelectedProductId(orderLine.productId)
+      setSelectedProductId(orderLine.product_id)
     } else {
       setFormData({
-        quantity: 1,
-        unitPrice: 0,
-        taxRate: 0,
+        qty: 1,
+        product_price: 0,
+        tax_rate: 0,
         discount: 0,
       })
       setSelectedProductId("")
@@ -71,9 +71,9 @@ export function OrderLineDialog({
 
   useEffect(() => {
     // Calculate total when form data changes
-    const quantity = formData.quantity || 0
-    const unitPrice = formData.unitPrice || 0
-    const taxRate = formData.taxRate || 0
+    const quantity = formData.qty || 0
+    const unitPrice = formData.product_price || 0
+    const taxRate = formData.tax_rate || 0
     const discount = formData.discount || 0
 
     const subtotal = quantity * unitPrice
@@ -172,7 +172,7 @@ export function OrderLineDialog({
                         <div className="flex items-center gap-2">
                           <Badge variant="outline">
                             {currencies.find(c => c.code === selectedCurrency)?.symbol}
-                            {convertPrice(selectedProduct.unitPrice, 'USD', selectedCurrency).toFixed(2)}
+                            {convertPrice(selectedProduct.price, 'USD', selectedCurrency).toFixed(2)}
                           </Badge>
                           <Button
                             type="button"

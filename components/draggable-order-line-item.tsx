@@ -61,14 +61,13 @@ export function DraggableOrderLineItem({
       <TableCell>
         {isEditing ? (
           <Input
-            value={editedLine.productName}
-            onChange={(e) => handleInputChange('productName', e.target.value)}
+            value={editedLine.product_name}
+            onChange={(e) => handleInputChange('product_name', e.target.value)}
             className="w-full"
           />
         ) : (
           <div>
-            <div className="font-medium">{line.productName}</div>
-            <div className="text-sm text-muted-foreground">{line.productCode}</div>
+            <div className="font-medium">{line.product_name}</div>
           </div>
         )}
       </TableCell>
@@ -76,36 +75,36 @@ export function DraggableOrderLineItem({
         {isEditing ? (
           <Input
             type="number"
-            value={editedLine.quantity}
-            onChange={(e) => handleInputChange('quantity', Number(e.target.value))}
+            value={editedLine.qty}
+            onChange={(e) => handleInputChange('qty', Number(e.target.value))}
             className="w-20"
           />
         ) : (
-          line.quantity
+          line.qty
         )}
       </TableCell>
       <TableCell>
         {isEditing ? (
           <Input
             type="number"
-            value={editedLine.unitPrice}
-            onChange={(e) => handleInputChange('unitPrice', Number(e.target.value))}
+            value={editedLine.product_price}
+            onChange={(e) => handleInputChange('product_price', Number(e.target.value))}
             className="w-24"
           />
         ) : (
-          `$${line.unitPrice.toFixed(2)}`
+          `$${line.product_price.toFixed(2)}`
         )}
       </TableCell>
       <TableCell>
         {isEditing ? (
           <Input
             type="number"
-            value={editedLine.taxRate}
-            onChange={(e) => handleInputChange('taxRate', Number(e.target.value))}
+            value={editedLine.tax_rate}
+            onChange={(e) => handleInputChange('tax_rate', Number(e.target.value))}
             className="w-20"
           />
         ) : (
-          `${line.taxRate}%`
+          `${line.tax_rate}%`
         )}
       </TableCell>
       <TableCell>
@@ -120,7 +119,7 @@ export function DraggableOrderLineItem({
           `${line.discount}%`
         )}
       </TableCell>
-      <TableCell>${line.total.toFixed(2)}</TableCell>
+      <TableCell>${line.discount.toFixed(2)}</TableCell>
       <TableCell>
         <Checkbox
           checked={line.isRecurring}
